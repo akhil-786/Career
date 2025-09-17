@@ -1,10 +1,11 @@
+// src/pages/Colleges.tsx
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, GraduationCap, MapPin, AlertCircle, X } from "lucide-react";
+import { Loader2, GraduationCap, MapPin, AlertCircle, X, Menu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // Interfaces
@@ -36,16 +37,14 @@ export default function Colleges() {
   const [colleges, setColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCollege, setSelectedCollege] = useState<College | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      fetchUserAndColleges();
-    }
+    if (user) fetchUserAndColleges();
   }, [user]);
 
   const fetchUserAndColleges = async () => {
     try {
-      // ✅ Get current user profile
       const { data: profileData, error: profileError } = await supabase
         .from("users")
         .select("id, name, class_completed, district")
@@ -57,15 +56,10 @@ export default function Colleges() {
 
       if (profileData) {
         let nextEligibility: string[] = [];
-
-        // ✅ Define next-level eligibility
-        if (profileData.class_completed === "10th") {
-          nextEligibility = ["Intermediate qualification", "SSC Qualification"];
-        } else if (profileData.class_completed === "Intermediate") {
+        if (profileData.class_completed === "10th") nextEligibility = ["Intermediate qualification", "SSC Qualification"];
+        else if (profileData.class_completed === "Intermediate")
           nextEligibility = ["Bachelor''s qualification", "JEE Main Qualified", "NEET Qualified"];
-        }
 
-        // ✅ Fetch colleges
         const { data: collegesData, error: collegesError } = await supabase
           .from("colleges")
           .select("*")
@@ -96,27 +90,52 @@ export default function Colleges() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* ✅ Navigation Bar */}
-      <nav className="bg-white border-b shadow-sm sticky top-0 z-10">
-        <div className="container mx-auto flex justify-between items-center px-4 py-3">
+      {/* Navbar */}
+      <nav className="bg-white border-b shadow-sm sticky top-0 z-50">
+        <div className="container mx-auto flex items-center justify-between px-4 py-3 md:px-8">
           <h1 className="text-xl font-bold text-blue-600">Career View</h1>
-          <div className="flex gap-6 text-sm">
+
+          {/* Desktop Links */}
+          <div className="hidden md:flex gap-6 text-sm">
             <a href="/dashboard" className="hover:text-blue-600">Dashboard</a>
             <a href="/colleges" className="text-blue-600 font-medium">Colleges</a>
             <a href="/quiz" className="hover:text-blue-600">Quiz</a>
             <a href="/roadmap" className="hover:text-blue-600">Roadmaps</a>
           </div>
-          <Button variant="outline" size="sm">Sign Out</Button>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button onClick={() => setMenuOpen(!menuOpen)}>
+              <Menu className="w-6 h-6 text-gray-700" />
+            </button>
+          </div>
+
+          {/* Desktop Sign Out */}
+          <div className="hidden md:block">
+            <Button variant="outline" size="sm">Sign Out</Button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {menuOpen && (
+          <div className="md:hidden bg-white border-t shadow-md flex flex-col px-4 py-4 gap-3">
+            <a href="/dashboard" className="hover:text-blue-600" onClick={() => setMenuOpen(false)}>Dashboard</a>
+            <a href="/colleges" className="text-blue-600 font-medium" onClick={() => setMenuOpen(false)}>Colleges</a>
+            <a href="/quiz" className="hover:text-blue-600" onClick={() => setMenuOpen(false)}>Quiz</a>
+            <a href="/roadmap" className="hover:text-blue-600" onClick={() => setMenuOpen(false)}>Roadmaps</a>
+            <Button variant="outline" size="sm" onClick={() => setMenuOpen(false)}>Sign Out</Button>
+          </div>
+        )}
       </nav>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* ✅ Student Details */}
+      {/* Page Content */}
+      <div className="container mx-auto px-4 py-8 md:px-8">
+        {/* Student Details */}
         {profile && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Your Details</CardTitle>
-              <CardDescription>We are showing colleges based on your next study level</CardDescription>
+              <CardDescription>Colleges based on your next study level</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-4">
               <Badge variant="secondary">Name: {profile.name}</Badge>
@@ -128,9 +147,9 @@ export default function Colleges() {
           </Card>
         )}
 
-        {/* ✅ Colleges List */}
+        {/* Colleges Grid */}
         {colleges.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {colleges.map((college) => (
               <Card
                 key={college.id}
@@ -162,10 +181,10 @@ export default function Colleges() {
         )}
       </div>
 
-      {/* ✅ College Details Modal */}
+      {/* College Details Modal */}
       {selectedCollege && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-20">
-          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative overflow-y-auto max-h-[90vh]">
             <button
               onClick={() => setSelectedCollege(null)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"

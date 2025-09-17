@@ -108,3 +108,56 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+@layer base {
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    @apply min-h-screen m-0 p-0 font-sans;
+    @apply sm:text-sm md:text-base lg:text-lg;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+    @apply sm:text-lg md:text-xl lg:text-2xl;
+  }
+
+  p {
+    @apply text-base sm:text-sm md:text-base lg:text-lg;
+  }
+
+  img {
+    @apply max-w-full h-auto rounded;
+  }
+
+  button, input, select, textarea {
+    @apply rounded border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary;
+  }
+
+  table {
+    @apply w-full border-collapse;
+  }
+
+  th, td {
+    @apply border p-2 text-left;
+  }
+
+  /* Responsive containers */
+  .container {
+    @apply w-full max-w-full px-4 mx-auto;
+    @apply sm:px-2 md:px-4 lg:px-6 xl:px-8;
+  }
+
+  /* Card spacing */
+  .card {
+    @apply rounded-lg shadow-md p-4 mb-4;
+    @apply sm:p-3 md:p-4 lg:p-6;
+  }
+
+  /* Responsive grids */
+  .grid-responsive {
+    @apply grid gap-4;
+    @apply sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+}

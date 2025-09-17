@@ -1,32 +1,66 @@
-// HomePage.tsx
-import React from 'react';
+// src/pages/Index.tsx
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, MapPin, Calendar, Book, Target } from 'lucide-react'; 
+import { Brain, MapPin, Calendar, Book, Target, Menu, X } from 'lucide-react';
 import heroImage from '../assets/hero-image.jpg';
-// icons you need (you may want others)
 
-const Navbar: React.FC = () => (
-  <nav className="w-full py-4 px-8 flex justify-between items-center bg-white shadow-sm">
-    <div className="text-2xl font-bold text-primary">
-      Career View
-    </div>
-    <div className="space-x-6">
-      <Link to="/" className="text-gray-700 hover:text-primary">Home</Link>
-      <Link to="/quiz" className="text-gray-700 hover:text-primary">Quiz</Link>
-      <Link to="/colleges" className="text-gray-700 hover:text-primary">Colleges</Link>
-      <Link to="/auth" className="text-gray-700 hover:text-primary">Timeline</Link>
-    </div>
-    <div className="space-x-4">
-      <Link to="/auth" className="text-gray-700 hover:text-primary">Login</Link>
-      <Link to="/auth" className="px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md shadow">
-        Get Started
-      </Link>
-    </div>
-  </nav>
-);
+// ---------------- Navbar ----------------
+const Navbar: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
 
+  return (
+    <nav className="w-full bg-white shadow-sm sticky top-0 z-50 px-4 md:px-8 py-4 flex items-center justify-between">
+      <div className="text-2xl font-bold text-primary">Career View</div>
+
+      {/* Desktop Links */}
+      <div className="hidden md:flex items-center gap-6">
+        <Link to="/" className="text-gray-700 hover:text-primary transition">Home</Link>
+        <Link to="/quiz" className="text-gray-700 hover:text-primary transition">Quiz</Link>
+        <Link to="/colleges" className="text-gray-700 hover:text-primary transition">Colleges</Link>
+        <Link to="/auth" className="text-gray-700 hover:text-primary transition">Timeline</Link>
+        <Link to="/auth" className="text-gray-700 hover:text-primary transition">Login</Link>
+        <Link
+          to="/auth"
+          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md shadow hover:opacity-90 transition"
+        >
+          Get Started
+        </Link>
+      </div>
+
+      {/* Mobile Menu Button */}
+      <div className="md:hidden flex items-center">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="text-gray-700 hover:text-primary focus:outline-none"
+        >
+          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="absolute top-full left-0 w-full bg-white shadow-md md:hidden flex flex-col px-4 py-4 space-y-3">
+          <Link to="/" className="text-gray-700 hover:text-primary transition" onClick={() => setIsOpen(false)}>Home</Link>
+          <Link to="/quiz" className="text-gray-700 hover:text-primary transition" onClick={() => setIsOpen(false)}>Quiz</Link>
+          <Link to="/colleges" className="text-gray-700 hover:text-primary transition" onClick={() => setIsOpen(false)}>Colleges</Link>
+          <Link to="/auth" className="text-gray-700 hover:text-primary transition" onClick={() => setIsOpen(false)}>Timeline</Link>
+          <Link to="/auth" className="text-gray-700 hover:text-primary transition" onClick={() => setIsOpen(false)}>Login</Link>
+          <Link
+            to="/auth"
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md shadow hover:opacity-90 transition text-center"
+            onClick={() => setIsOpen(false)}
+          >
+            Get Started
+          </Link>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+// ---------------- Hero ----------------
 const Hero: React.FC = () => (
-  <section className="py-16 bg-gray-50 px-8">
+  <section className="py-16 bg-gray-50 px-4 md:px-8">
     <div className="container mx-auto flex flex-col md:flex-row items-center gap-8">
       <div className="flex-1">
         <h1 className="text-4xl md:text-5xl font-bold leading-tight">
@@ -35,15 +69,15 @@ const Hero: React.FC = () => (
         <p className="mt-4 text-lg text-gray-600">
           Discover the perfect educational path after Class 10 &amp; 12. Get personalized recommendations, explore career roadmaps, and find government colleges in your area.
         </p>
-        <div className="mt-8 space-x-4">
-          <Link to="/quiz" className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+        <div className="mt-8 flex flex-col sm:flex-row gap-4">
+          <Link to="/quiz" className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-center">
             Take Career Quiz
           </Link>
-          <Link to="/colleges" className="px-6 py-3 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50">
+          <Link to="/colleges" className="px-6 py-3 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50 text-center">
             Explore Colleges
           </Link>
         </div>
-        <div className="mt-8 flex space-x-8">
+        <div className="mt-8 flex flex-wrap gap-8">
           <div className="flex items-center space-x-2">
             <div className="text-2xl font-bold">10,000+</div>
             <div className="text-gray-600">Students Guided</div>
@@ -58,9 +92,8 @@ const Hero: React.FC = () => (
           </div>
         </div>
       </div>
-      <div className="flex-1 relative">
-      <img src={heroImage} alt="Students" className="rounded-lg shadow-lg w-full object-cover" />
-        {/* Optional badges */}
+      <div className="flex-1 relative w-full md:w-auto">
+        <img src={heroImage} alt="Students" className="rounded-lg shadow-lg w-full object-cover" />
         <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-medium text-green-600 shadow">
           Class 10 Passed ✓
         </div>
@@ -72,6 +105,7 @@ const Hero: React.FC = () => (
   </section>
 );
 
+// ---------------- Features ----------------
 type FeatureItemProps = {
   icon: React.ReactNode;
   title: string;
@@ -80,9 +114,7 @@ type FeatureItemProps = {
 
 const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description }) => (
   <div className="p-6 bg-white shadow rounded-lg flex flex-col h-full">
-    <div className="text-primary mb-4">
-      {icon}
-    </div>
+    <div className="text-primary mb-4">{icon}</div>
     <h3 className="text-xl font-semibold mb-2">{title}</h3>
     <p className="text-gray-600 flex-1">{description}</p>
     <div className="mt-4">
@@ -94,7 +126,7 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description }) =
 );
 
 const Features: React.FC = () => (
-  <section className="py-16 bg-gray-100 px-8">
+  <section className="py-16 bg-gray-100 px-4 md:px-8">
     <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
       <FeatureItem
         icon={<Brain className="w-8 h-8" />}
@@ -120,8 +152,9 @@ const Features: React.FC = () => (
   </section>
 );
 
+// ---------------- Footer ----------------
 const Footer: React.FC = () => (
-  <footer className="bg-white mt-16 py-12 px-8">
+  <footer className="bg-white mt-16 py-12 px-4 md:px-8">
     <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
       <div>
         <div className="text-2xl font-bold text-primary">Career View</div>
@@ -134,7 +167,6 @@ const Footer: React.FC = () => (
           <div><strong>Location:</strong> Hyderabad, India</div>
         </div>
         <div className="mt-4 flex space-x-4">
-          {/* Insert icons or links to social media */}
           <a href="#" className="text-gray-500 hover:text-gray-700">Facebook</a>
           <a href="#" className="text-gray-500 hover:text-gray-700">Twitter</a>
           <a href="#" className="text-gray-500 hover:text-gray-700">Instagram</a>
@@ -175,6 +207,7 @@ const Footer: React.FC = () => (
   </footer>
 );
 
+// ---------------- HomePage ----------------
 const HomePage: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
