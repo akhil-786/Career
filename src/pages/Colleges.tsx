@@ -1,71 +1,80 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Loader2, GraduationCap, MapPin, AlertCircle, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Search, 
-  MapPin, 
-  GraduationCap, 
-  Phone, 
-  Mail, 
-  Globe,
-  Heart,
-  Filter,
-  Loader2,
-  ChevronLeft
-} from "lucide-react";
-import { Link } from "react-router-dom";
+
+// Interfaces
+interface UserProfile {
+  id: string;
+  name: string;
+  class_completed: string;
+  district: string;
+}
 
 interface College {
   id: string;
   name: string;
   district: string;
-  programs: any;
-  facilities: any;
-  contact: any;
   eligibility: string;
+  programs: string[];
+  facilities: string[];
+  contact?: {
+    phone: string;
+    email: string;
+  };
 }
 
 export default function Colleges() {
+  const { user } = useAuth();
   const { toast } = useToast();
+
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [colleges, setColleges] = useState<College[]>([]);
-  const [filteredColleges, setFilteredColleges] = useState<College[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [selectedProgram, setSelectedProgram] = useState("");
-  const [savedColleges, setSavedColleges] = useState<string[]>([]);
+  const [selectedCollege, setSelectedCollege] = useState<College | null>(null);
 
   useEffect(() => {
-    fetchColleges();
-  }, []);
+    if (user) {
+      fetchUserAndColleges();
+    }
+  }, [user]);
 
-  useEffect(() => {
-    filterColleges();
-  }, [searchTerm, selectedDistrict, selectedProgram, colleges]);
-
-  const fetchColleges = async () => {
+  const fetchUserAndColleges = async () => {
     try {
-      const { data, error } = await supabase
-        .from('colleges')
-        .select('*')
-        .order('name');
+      // ✅ Get current user profile
+      const { data: profileData, error: profileError } = await supabase
+        .from("users")
+        .select("id, name, class_completed, district")
+        .eq("id", user?.id)
+        .single();
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+      setProfile(profileData);
 
-      if (!data || data.length === 0) {
-        // Create sample colleges if none exist
-        await createSampleColleges();
-        return;
+      if (profileData) {
+        let nextEligibility: string[] = [];
+
+        // ✅ Define next-level eligibility
+        if (profileData.class_completed === "10th") {
+          nextEligibility = ["Intermediate qualification", "SSC Qualification"];
+        } else if (profileData.class_completed === "Intermediate") {
+          nextEligibility = ["Bachelor''s qualification", "JEE Main Qualified", "NEET Qualified"];
+        }
+
+        // ✅ Fetch colleges
+        const { data: collegesData, error: collegesError } = await supabase
+          .from("colleges")
+          .select("*")
+          .ilike("district", `%${profileData.district}%`)
+          .in("eligibility", nextEligibility);
+
+        if (collegesError) throw collegesError;
+        setColleges(collegesData || []);
       }
-
-      setColleges(data);
-      setFilteredColleges(data);
     } catch (error: any) {
       toast({
         title: "Error loading colleges",
@@ -77,136 +86,6 @@ export default function Colleges() {
     }
   };
 
-  const createSampleColleges = async () => {
-    const sampleColleges = [
-      {
-        name: "Government Degree College Srinagar",
-        district: "Srinagar",
-        programs: ["B.A", "B.Sc", "B.Com", "M.A", "M.Sc"],
-        facilities: ["Library", "Computer Lab", "Sports Complex", "Hostel", "Canteen"],
-        contact: {
-          phone: "+91-194-2123456",
-          email: "gdc.srinagar@gov.jk.in",
-          website: "www.gdcsrinagar.edu.in"
-        },
-        eligibility: "10+2 with minimum 50% marks"
-      },
-      {
-        name: "Government Polytechnic Baramulla",
-        district: "Baramulla",
-        programs: ["Diploma in Civil Engineering", "Diploma in Mechanical Engineering", "Diploma in Computer Science"],
-        facilities: ["Workshops", "Computer Lab", "Library", "Playground"],
-        contact: {
-          phone: "+91-194-2234567",
-          email: "polytechnic.baramulla@gov.jk.in"
-        },
-        eligibility: "10th class pass with Science and Maths"
-      },
-      {
-        name: "Kashmir University College",
-        district: "Srinagar",
-        programs: ["B.Tech", "BBA", "B.Sc IT", "MBA"],
-        facilities: ["Modern Labs", "Library", "Wi-Fi Campus", "Placement Cell", "Hostels"],
-        contact: {
-          phone: "+91-194-2345678",
-          email: "info@kucollege.edu.in",
-          website: "www.kucollege.edu.in"
-        },
-        eligibility: "12th with relevant subjects"
-      },
-      {
-        name: "Women's College Baramulla",
-        district: "Baramulla",
-        programs: ["B.A", "B.Sc", "B.Com", "BCA", "M.A"],
-        facilities: ["Girls Hostel", "Library", "Computer Lab", "Sports Facilities"],
-        contact: {
-          phone: "+91-194-2456789",
-          email: "womens.college.baramulla@edu.in"
-        },
-        eligibility: "10+2 pass (Women only)"
-      },
-      {
-        name: "Government Medical College Srinagar",
-        district: "Srinagar",
-        programs: ["MBBS", "MD", "MS", "Nursing"],
-        facilities: ["Hospital", "Medical Labs", "Library", "Research Center"],
-        contact: {
-          phone: "+91-194-2567890",
-          email: "gmc.srinagar@gov.jk.in",
-          website: "www.gmcsrinagar.edu.in"
-        },
-        eligibility: "12th with PCB and NEET qualification"
-      }
-    ];
-
-    try {
-      const { data, error } = await supabase
-        .from('colleges')
-        .insert(sampleColleges)
-        .select();
-
-      if (error) throw error;
-      setColleges(data);
-      setFilteredColleges(data);
-    } catch (error: any) {
-      toast({
-        title: "Error creating sample data",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const filterColleges = () => {
-    let filtered = colleges;
-
-    if (searchTerm) {
-      filtered = filtered.filter(college =>
-        college.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        college.district.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (selectedDistrict) {
-      filtered = filtered.filter(college => college.district === selectedDistrict);
-    }
-
-    if (selectedProgram) {
-      filtered = filtered.filter(college =>
-        Array.isArray(college.programs) && 
-        college.programs.some((program: string) => 
-          program.toLowerCase().includes(selectedProgram.toLowerCase())
-        )
-      );
-    }
-
-    setFilteredColleges(filtered);
-  };
-
-  const toggleSaveCollege = (collegeId: string) => {
-    setSavedColleges(prev => 
-      prev.includes(collegeId) 
-        ? prev.filter(id => id !== collegeId)
-        : [...prev, collegeId]
-    );
-    
-    toast({
-      title: savedColleges.includes(collegeId) ? "Removed from saved" : "Added to saved",
-      description: "College saved to your profile",
-    });
-  };
-
-  const getUniqueDistricts = () => {
-    return [...new Set(colleges.map(college => college.district))];
-  };
-
-  const getUniquePrograms = () => {
-    const allPrograms = colleges.flatMap(college => 
-      Array.isArray(college.programs) ? college.programs : []
-    );
-    return [...new Set(allPrograms)];
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -216,175 +95,102 @@ export default function Colleges() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/dashboard">
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Back
-              </Link>
-            </Button>
-            <h1 className="text-xl font-bold">College Directory</h1>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* ✅ Navigation Bar */}
+      <nav className="bg-white border-b shadow-sm sticky top-0 z-10">
+        <div className="container mx-auto flex justify-between items-center px-4 py-3">
+          <h1 className="text-xl font-bold text-blue-600">Career View</h1>
+          <div className="flex gap-6 text-sm">
+            <a href="/dashboard" className="hover:text-blue-600">Dashboard</a>
+            <a href="/colleges" className="text-blue-600 font-medium">Colleges</a>
+            <a href="/quiz" className="hover:text-blue-600">Quiz</a>
+            <a href="/roadmap" className="hover:text-blue-600">Roadmaps</a>
           </div>
-          <Badge variant="secondary" className="flex items-center gap-1">
-            <GraduationCap className="h-3 w-3" />
-            {filteredColleges.length} Colleges
-          </Badge>
+          <Button variant="outline" size="sm">Sign Out</Button>
         </div>
-      </header>
+      </nav>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Search and Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Search & Filter Colleges
-            </CardTitle>
-            <CardDescription>
-              Find the perfect college for your career goals
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search colleges..."
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              
-              <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select District" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Districts</SelectItem>
-                  {getUniqueDistricts().map(district => (
-                    <SelectItem key={district} value={district}>{district}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        {/* ✅ Student Details */}
+        {profile && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Your Details</CardTitle>
+              <CardDescription>We are showing colleges based on your next study level</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-4">
+              <Badge variant="secondary">Name: {profile.name}</Badge>
+              <Badge variant="outline">Completed: {profile.class_completed}</Badge>
+              <Badge variant="outline" className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" /> {profile.district}
+              </Badge>
+            </CardContent>
+          </Card>
+        )}
 
-              <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Program" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Programs</SelectItem>
-                  {getUniquePrograms().map(program => (
-                    <SelectItem key={program} value={program}>{program}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Colleges Grid */}
-        <div className="grid gap-6">
-          {filteredColleges.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <GraduationCap className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">No colleges found matching your criteria</p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredColleges.map((college) => (
-              <Card key={college.id} className="hover:shadow-md transition-shadow">
+        {/* ✅ Colleges List */}
+        {colleges.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {colleges.map((college) => (
+              <Card
+                key={college.id}
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedCollege(college)}
+              >
                 <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2">
-                      <CardTitle className="text-lg">{college.name}</CardTitle>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        {college.district}
-                      </div>
-                      <CardDescription>{college.eligibility}</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleSaveCollege(college.id)}
-                        className={savedColleges.includes(college.id) ? 'text-red-500' : ''}
-                      >
-                        <Heart className={`h-4 w-4 ${savedColleges.includes(college.id) ? 'fill-current' : ''}`} />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                  <CardTitle className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5 text-primary" />
+                    {college.name}
+                  </CardTitle>
+                  <CardDescription>
+                    <MapPin className="inline h-4 w-4 mr-1" />
+                    {college.district}
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <Tabs defaultValue="programs" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="programs">Programs</TabsTrigger>
-                      <TabsTrigger value="facilities">Facilities</TabsTrigger>
-                      <TabsTrigger value="contact">Contact</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="programs" className="space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        {Array.isArray(college.programs) && college.programs.map((program: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {program}
-                          </Badge>
-                        ))}
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="facilities" className="space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        {Array.isArray(college.facilities) && college.facilities.map((facility: string, index: number) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {facility}
-                          </Badge>
-                        ))}
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="contact" className="space-y-2">
-                      {college.contact && (
-                        <div className="space-y-2 text-sm">
-                          {college.contact.phone && (
-                            <div className="flex items-center gap-2">
-                              <Phone className="h-4 w-4 text-muted-foreground" />
-                              <span>{college.contact.phone}</span>
-                            </div>
-                          )}
-                          {college.contact.email && (
-                            <div className="flex items-center gap-2">
-                              <Mail className="h-4 w-4 text-muted-foreground" />
-                              <span>{college.contact.email}</span>
-                            </div>
-                          )}
-                          {college.contact.website && (
-                            <div className="flex items-center gap-2">
-                              <Globe className="h-4 w-4 text-muted-foreground" />
-                              <a href={`https://${college.contact.website}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                                {college.contact.website}
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </TabsContent>
-                  </Tabs>
+                <CardContent className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">Eligibility: {college.eligibility}</Badge>
+                  <Badge variant="outline">Programs: {college.programs.join(", ")}</Badge>
                 </CardContent>
               </Card>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <Card className="p-8 text-center">
+            <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+            <p className="text-muted-foreground">No colleges found for your next level of study.</p>
+          </Card>
+        )}
       </div>
+
+      {/* ✅ College Details Modal */}
+      {selectedCollege && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-20">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
+            <button
+              onClick={() => setSelectedCollege(null)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-primary" />
+              {selectedCollege.name}
+            </h2>
+            <p className="text-gray-600 mb-4">{selectedCollege.district}</p>
+
+            <div className="space-y-2">
+              <p><strong>Eligibility:</strong> {selectedCollege.eligibility}</p>
+              <p><strong>Programs:</strong> {selectedCollege.programs.join(", ")}</p>
+              <p><strong>Facilities:</strong> {selectedCollege.facilities.join(", ")}</p>
+              <p><strong>Contact:</strong></p>
+              <ul className="ml-4 list-disc text-gray-700">
+                <li>📞 {selectedCollege.contact?.phone}</li>
+                <li>📧 {selectedCollege.contact?.email}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

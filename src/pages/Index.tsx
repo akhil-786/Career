@@ -1,11 +1,191 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+// HomePage.tsx
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Brain, MapPin, Calendar, Book, Target } from 'lucide-react'; 
+import heroImage from '../assets/hero-image.jpg';
+// icons you need (you may want others)
 
-          <Link to="/auth">
-            <CardContent className="p-6 text-center">
-              <Brain className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <h3 className="font-semibold">Sign In</h3>
-              <p className="text-sm text-muted-foreground">Access your account</p>
-            </CardContent>
+const Navbar: React.FC = () => (
+  <nav className="w-full py-4 px-8 flex justify-between items-center bg-white shadow-sm">
+    <div className="text-2xl font-bold text-primary">
+      Career View
+    </div>
+    <div className="space-x-6">
+      <Link to="/" className="text-gray-700 hover:text-primary">Home</Link>
+      <Link to="/quiz" className="text-gray-700 hover:text-primary">Quiz</Link>
+      <Link to="/colleges" className="text-gray-700 hover:text-primary">Colleges</Link>
+      <Link to="/auth" className="text-gray-700 hover:text-primary">Timeline</Link>
+    </div>
+    <div className="space-x-4">
+      <Link to="/auth" className="text-gray-700 hover:text-primary">Login</Link>
+      <Link to="/auth" className="px-4 py-2 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-md shadow">
+        Get Started
+      </Link>
+    </div>
+  </nav>
+);
+
+const Hero: React.FC = () => (
+  <section className="py-16 bg-gray-50 px-8">
+    <div className="container mx-auto flex flex-col md:flex-row items-center gap-8">
+      <div className="flex-1">
+        <h1 className="text-4xl md:text-5xl font-bold leading-tight">
+          Your Career Journey <span className="text-primary">Starts Here</span>
+        </h1>
+        <p className="mt-4 text-lg text-gray-600">
+          Discover the perfect educational path after Class 10 &amp; 12. Get personalized recommendations, explore career roadmaps, and find government colleges in your area.
+        </p>
+        <div className="mt-8 space-x-4">
+          <Link to="/quiz" className="px-6 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+            Take Career Quiz
           </Link>
+          <Link to="/colleges" className="px-6 py-3 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-50">
+            Explore Colleges
+          </Link>
+        </div>
+        <div className="mt-8 flex space-x-8">
+          <div className="flex items-center space-x-2">
+            <div className="text-2xl font-bold">10,000+</div>
+            <div className="text-gray-600">Students Guided</div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="text-2xl font-bold">500+</div>
+            <div className="text-gray-600">Courses Available</div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="text-2xl font-bold">95%</div>
+            <div className="text-gray-600">Success Rate</div>
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 relative">
+      <img src={heroImage} alt="Students" className="rounded-lg shadow-lg w-full object-cover" />
+        {/* Optional badges */}
+        <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded-full text-sm font-medium text-green-600 shadow">
+          Class 10 Passed ✓
+        </div>
+        <div className="absolute bottom-4 right-4 bg-white px-3 py-1 rounded-full text-sm font-medium text-orange-600 shadow">
+          Dream Career Awaits
+        </div>
+      </div>
+    </div>
+  </section>
+);
 
-export default Index;
+type FeatureItemProps = {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+};
+
+const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description }) => (
+  <div className="p-6 bg-white shadow rounded-lg flex flex-col h-full">
+    <div className="text-primary mb-4">
+      {icon}
+    </div>
+    <h3 className="text-xl font-semibold mb-2">{title}</h3>
+    <p className="text-gray-600 flex-1">{description}</p>
+    <div className="mt-4">
+      <Link to="#" className="text-blue-500 font-medium hover:underline">
+        Learn More →
+      </Link>
+    </div>
+  </div>
+);
+
+const Features: React.FC = () => (
+  <section className="py-16 bg-gray-100 px-8">
+    <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+      <FeatureItem
+        icon={<Brain className="w-8 h-8" />}
+        title="Smart Aptitude Quiz"
+        description="Discover your strengths and interests with our AI-powered assessment designed for Indian students. Personalized for Class 10 & 12, scientific methodology, instant results."
+      />
+      <FeatureItem
+        icon={<Target className="w-8 h-8" />}
+        title="Career Roadmaps"
+        description="Visualize your future with detailed pathways from education to career success. Government job paths, private sector routes, entrepreneurship options."
+      />
+      <FeatureItem
+        icon={<Book className="w-8 h-8" />}
+        title="Government College Directory"
+        description="Find quality government colleges in your district with complete details and admission info. District-wise search, admission criteria, contact details."
+      />
+      <FeatureItem
+        icon={<Calendar className="w-8 h-8" />}
+        title="Important Timelines"
+        description="Never miss deadlines with our comprehensive calendar of admissions and exams. Admission dates, scholarship deadlines, exam schedules."
+      />
+    </div>
+  </section>
+);
+
+const Footer: React.FC = () => (
+  <footer className="bg-white mt-16 py-12 px-8">
+    <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div>
+        <div className="text-2xl font-bold text-primary">Career View</div>
+        <p className="mt-2 text-gray-600">
+          Empowering Indian students to make informed career decisions through personalized guidance, comprehensive resources, and expert insights.
+        </p>
+        <div className="mt-4 space-y-2 text-gray-600">
+          <div><strong>Email:</strong> support@careerview.in</div>
+          <div><strong>Phone:</strong> +91 98765 43210</div>
+          <div><strong>Location:</strong> Hyderabad, India</div>
+        </div>
+        <div className="mt-4 flex space-x-4">
+          {/* Insert icons or links to social media */}
+          <a href="#" className="text-gray-500 hover:text-gray-700">Facebook</a>
+          <a href="#" className="text-gray-500 hover:text-gray-700">Twitter</a>
+          <a href="#" className="text-gray-500 hover:text-gray-700">Instagram</a>
+          <a href="#" className="text-gray-500 hover:text-gray-700">YouTube</a>
+        </div>
+      </div>
+      <div>
+        <h4 className="font-semibold text-lg text-gray-800 mb-2">Platform</h4>
+        <ul className="text-gray-600 space-y-1">
+          <li><Link to="/quiz" className="hover:text-primary">Career Quiz</Link></li>
+          <li><Link to="/colleges" className="hover:text-primary">College Directory</Link></li>
+          <li><Link to="/roadmap" className="hover:text-primary">Career Roadmaps</Link></li>
+          <li><Link to="/timeline" className="hover:text-primary">Timeline</Link></li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="font-semibold text-lg text-gray-800 mb-2">Resources</h4>
+        <ul className="text-gray-600 space-y-1">
+          <li><Link to="/how-it-works" className="hover:text-primary">How it Works</Link></li>
+          <li><Link to="/success-stories" className="hover:text-primary">Success Stories</Link></li>
+          <li><Link to="/faq" className="hover:text-primary">FAQ</Link></li>
+          <li><Link to="/blog" className="hover:text-primary">Blog</Link></li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="font-semibold text-lg text-gray-800 mb-2">Support</h4>
+        <ul className="text-gray-600 space-y-1">
+          <li><Link to="/help" className="hover:text-primary">Help Center</Link></li>
+          <li><Link to="/contact" className="hover:text-primary">Contact Us</Link></li>
+          <li><Link to="/privacy" className="hover:text-primary">Privacy Policy</Link></li>
+          <li><Link to="/terms" className="hover:text-primary">Terms of Service</Link></li>
+        </ul>
+      </div>
+    </div>
+    <div className="mt-8 text-center text-gray-500 text-sm">
+      © 2024 Career View. All rights reserved. Made with ❤ for Indian students.
+    </div>
+  </footer>
+);
+
+const HomePage: React.FC = () => {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-grow">
+        <Hero />
+        <Features />
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default HomePage;
