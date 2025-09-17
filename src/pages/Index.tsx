@@ -1,14 +1,11 @@
 // Update this page (the content is just a fallback if you fail to update the page)
 
-const Index = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
-};
+          <Link to="/auth">
+            <CardContent className="p-6 text-center">
+              <Brain className="h-8 w-8 mx-auto mb-2 text-primary" />
+              <h3 className="font-semibold">Sign In</h3>
+              <p className="text-sm text-muted-foreground">Access your account</p>
+            </CardContent>
+          </Link>
 
 export default Index;
