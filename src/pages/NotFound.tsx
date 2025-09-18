@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,6 @@ interface ImportantDate {
 }
 
 export default function ImportantDates() {
-  // ✅ Dummy important dates
   const [dates] = useState<ImportantDate[]>([
     {
       id: "d1",
@@ -60,10 +60,10 @@ export default function ImportantDates() {
         <div className="container mx-auto flex justify-between items-center px-4 py-3">
           <h1 className="text-xl font-bold text-blue-600">Career View</h1>
           <div className="flex gap-6 text-sm">
-            <a href="/dashboard" className="hover:text-blue-600">Dashboard</a>
-            <a href="/colleges" className="hover:text-blue-600">Colleges</a>
-            <a href="/Roadmaps" className="hover:text-blue-600">Roadmap</a>
-            <a href="/NotFound" className="text-blue-600 font-medium">Important Dates</a>
+            <Link to="/dashboard" className="hover:text-blue-600">Dashboard</Link>
+            <Link to="/colleges" className="hover:text-blue-600">Colleges</Link>
+            <Link to="/roadmaps" className="hover:text-blue-600">Roadmap</Link>
+            <Link to="/important-dates" className="text-blue-600 font-medium">Important Dates</Link>
           </div>
           <Button variant="outline" size="sm">Sign Out</Button>
         </div>
