@@ -62,7 +62,7 @@ export default function ImportantDates() {
           <div className="flex gap-6 text-sm">
             <a href="/dashboard" className="hover:text-blue-600">Dashboard</a>
             <a href="/colleges" className="hover:text-blue-600">Colleges</a>
-            <a href="/quiz" className="hover:text-blue-600">Quiz</a>
+            <a href="/Roadmaps" className="hover:text-blue-600">Roadmap</a>
             <a href="/important-dates" className="text-blue-600 font-medium">Important Dates</a>
           </div>
           <Button variant="outline" size="sm">Sign Out</Button>

@@ -100,7 +100,7 @@ export default function Colleges() {
             <a href="/dashboard" className="hover:text-blue-600">Dashboard</a>
             <a href="/colleges" className="text-blue-600 font-medium">Colleges</a>
             <a href="/quiz" className="hover:text-blue-600">Quiz</a>
-            <a href="/roadmap" className="hover:text-blue-600">Roadmaps</a>
+            <a href="/Roadmaps" className="hover:text-blue-600">Roadmaps</a>
           </div>
 
           {/* Mobile Menu Button */}
