@@ -106,7 +106,7 @@ export default function Colleges() {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <button onClick={() => setMenuOpen(!menuOpen)}>
+            <button onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
               <Menu className="w-6 h-6 text-gray-700" />
             </button>
           </div>
