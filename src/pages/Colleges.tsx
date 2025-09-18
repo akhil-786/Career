@@ -1,4 +1,3 @@
-// src/pages/Colleges.tsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Loader2, GraduationCap, MapPin, AlertCircle, X, Menu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// Interfaces
 interface UserProfile {
   id: string;
   name: string;
@@ -25,8 +23,8 @@ interface College {
   programs: string[];
   facilities: string[];
   contact?: {
-    phone: string;
-    email: string;
+    phone?: string;
+    email?: string;
   };
 }
 
@@ -42,40 +40,66 @@ export default function Colleges() {
 
   useEffect(() => {
     if (user) fetchUserAndColleges();
+    else setLoading(false);
   }, [user]);
 
   const fetchUserAndColleges = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
     try {
+      // Fetch user profile
       const { data: profileData, error: profileError } = await supabase
         .from("users")
         .select("id, name, class_completed, district")
-        .eq("id", user?.id)
+        .eq("id", user.id)
         .single();
 
       if (profileError) throw profileError;
       setProfile(profileData);
 
-      if (profileData) {
-        let nextEligibility: string[] = [];
-        if (profileData.class_completed === "10th") nextEligibility = ["Intermediate qualification", "SSC Qualification"];
-        else if (profileData.class_completed === "Intermediate")
-          nextEligibility = ["Bachelor''s qualification", "JEE Main Qualified", "NEET Qualified"];
-
-        const { data: collegesData, error: collegesError } = await supabase
-          .from("colleges")
-          .select("*")
-          .ilike("district", `%${profileData.district}%`)
-          .in("eligibility", nextEligibility);
-
-        if (collegesError) throw collegesError;
-        setColleges(collegesData || []);
+      if (!profileData) {
+        setColleges([]);
+        return;
       }
+
+      // Determine next eligible levels
+      let eligibleLevels: string[] = [];
+      const completedClass = profileData.class_completed.toLowerCase();
+
+      if (completedClass === "10th") {
+        eligibleLevels = ["intermediate", "ssc equivalent", "junior college"];
+      } else if (completedClass === "12th") {
+        eligibleLevels = ["bachelor's", "b.tech", "degree", "neet qualified", "jee qualified", "undergraduate"];
+      } else if (completedClass === "diploma") {
+        eligibleLevels = ["bachelor's", "b.tech", "degree"];
+      }
+
+      // --- CORRECTED SUPABASE QUERY LOGIC ---
+      // Build a single 'OR' string for the eligibility filter without extra parentheses
+      const eligibilityConditions = eligibleLevels.map(level => `eligibility.ilike.%${level}%`).join(",");
+
+      // Fetch colleges
+      const { data: collegesData, error: collegesError } = await supabase
+        .from("colleges")
+        .select("*")
+        .ilike("district", `%${profileData.district}%`)
+        .or(eligibilityConditions);
+
+      if (collegesError) throw collegesError;
+      setColleges(collegesData || []);
     } catch (error: any) {
+      console.error("Error fetching data:", error);
       toast({
         title: "Error loading colleges",
         description: error.message,
         variant: "destructive",
       });
+      setColleges([]);
     } finally {
       setLoading(false);
     }
@@ -90,7 +114,7 @@ export default function Colleges() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
       <nav className="bg-white border-b shadow-sm sticky top-0 z-50">
         <div className="container mx-auto flex items-center justify-between px-4 py-3 md:px-8">

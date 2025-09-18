@@ -1,25 +1,45 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  BookOpen, 
-  Brain, 
-  GraduationCap, 
-  TrendingUp, 
-  MapPin, 
+import {
+  BookOpen,
+  Brain,
+  GraduationCap,
+  TrendingUp,
+  MapPin,
   Clock,
   Award,
   Target,
   ChevronRight,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+
+// Recharts imports
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  BarChart,
+  Bar,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 
 interface UserProfile {
   id: string;
@@ -34,7 +54,7 @@ interface QuizResult {
   id: string;
   result_stream: string;
   confidence_score: number;
-  suggested_courses: any;
+  suggested_courses: string[];
   created_at: string;
 }
 
@@ -53,55 +73,48 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      fetchUserData();
-    }
+    if (user) fetchUserData();
   }, [user]);
 
   const fetchUserData = async () => {
     try {
-      // Fetch user profile
       const { data: profileData, error: profileError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user?.id)
+        .from("users")
+        .select("*")
+        .eq("id", user?.id)
         .single();
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        throw profileError;
-      }
+      if (profileError && profileError.code !== "PGRST116") throw profileError;
 
-      if (profileData) {
-        setProfile(profileData);
-      } else {
-        // Create profile if doesn't exist
+      if (profileData) setProfile(profileData);
+      else {
+        // Create profile if missing
         const { data: newProfile, error: insertError } = await supabase
-          .from('users')
-          .insert([{
-            id: user?.id,
-            name: user?.user_metadata?.name || '',
-            class_completed: user?.user_metadata?.class_completed || '',
-            stream: user?.user_metadata?.stream || '',
-            district: user?.user_metadata?.district || '',
-            language: user?.user_metadata?.language || 'en'
-          }])
+          .from("users")
+          .insert([
+            {
+              id: user?.id,
+              name: user?.user_metadata?.name || "",
+              class_completed: user?.user_metadata?.class_completed || "",
+              stream: user?.user_metadata?.stream || "",
+              district: user?.user_metadata?.district || "",
+              language: user?.user_metadata?.language || "en",
+            },
+          ])
           .select()
           .single();
-
         if (insertError) throw insertError;
         setProfile(newProfile);
       }
 
-      // Fetch quiz results
       const { data: quizData, error: quizError } = await supabase
-        .from('quiz_results')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
+        .from("quiz_results")
+        .select("*")
+        .eq("user_id", user?.id)
+        .order("created_at", { ascending: true });
 
       if (quizError) throw quizError;
       setQuizResults(quizData || []);
-
     } catch (error: any) {
       toast({
         title: "Error loading data",
@@ -121,7 +134,19 @@ export default function Dashboard() {
     );
   }
 
-  const latestQuizResult = quizResults[0];
+  const latestQuizResult = quizResults[quizResults.length - 1];
+
+  const lineChartData = quizResults.map((result) => ({
+    date: new Date(result.created_at).toLocaleDateString(),
+    confidence: result.confidence_score,
+  }));
+
+  const barChartData = quizResults.reduce((acc: any[], curr) => {
+    const index = acc.findIndex((item) => item.stream === curr.result_stream);
+    if (index !== -1) acc[index].count += 1;
+    else acc.push({ stream: curr.result_stream, count: 1 });
+    return acc;
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
@@ -130,7 +155,7 @@ export default function Dashboard() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Career View
+              Career View
             </h1>
             {profile && (
               <div className="text-sm text-muted-foreground">
@@ -159,7 +184,9 @@ export default function Dashboard() {
                 <CardContent className="p-6 text-center">
                   <Brain className="h-8 w-8 mx-auto mb-2 text-primary" />
                   <h3 className="font-semibold">Take Quiz</h3>
-                  <p className="text-sm text-muted-foreground">Discover your career path</p>
+                  <p className="text-sm text-muted-foreground">
+                    Discover your career path
+                  </p>
                 </CardContent>
               </Link>
             </Card>
@@ -169,7 +196,9 @@ export default function Dashboard() {
                 <CardContent className="p-6 text-center">
                   <GraduationCap className="h-8 w-8 mx-auto mb-2 text-secondary" />
                   <h3 className="font-semibold">Explore Colleges</h3>
-                  <p className="text-sm text-muted-foreground">Find nearby institutions</p>
+                  <p className="text-sm text-muted-foreground">
+                    Find nearby institutions
+                  </p>
                 </CardContent>
               </Link>
             </Card>
@@ -179,7 +208,9 @@ export default function Dashboard() {
                 <CardContent className="p-6 text-center">
                   <TrendingUp className="h-8 w-8 mx-auto mb-2 text-accent" />
                   <h3 className="font-semibold">Career Roadmaps</h3>
-                  <p className="text-sm text-muted-foreground">Visualize your future</p>
+                  <p className="text-sm text-muted-foreground">
+                    Visualize your future
+                  </p>
                 </CardContent>
               </Link>
             </Card>
@@ -189,13 +220,15 @@ export default function Dashboard() {
                 <CardContent className="p-6 text-center">
                   <Clock className="h-8 w-8 mx-auto mb-2 text-destructive" />
                   <h3 className="font-semibold">Important Dates</h3>
-                  <p className="text-sm text-muted-foreground">Admissions & deadlines</p>
+                  <p className="text-sm text-muted-foreground">
+                    Admissions & deadlines
+                  </p>
                 </CardContent>
               </Link>
             </Card>
           </div>
 
-          {/* Main Content */}
+          {/* Tabs */}
           <Tabs defaultValue="overview" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -204,6 +237,7 @@ export default function Dashboard() {
               <TabsTrigger value="profile">Profile</TabsTrigger>
             </TabsList>
 
+            {/* Overview */}
             <TabsContent value="overview" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Latest Quiz Result */}
@@ -216,20 +250,28 @@ export default function Dashboard() {
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Recommended Stream</span>
-                          <Badge variant="secondary">{latestQuizResult.result_stream}</Badge>
+                          <span className="text-sm text-muted-foreground">
+                            Recommended Stream
+                          </span>
+                          <Badge variant="secondary">
+                            {latestQuizResult.result_stream}
+                          </Badge>
                         </div>
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-sm">
                             <span>Confidence Score</span>
                             <span>{latestQuizResult.confidence_score}%</span>
                           </div>
-                          <Progress value={latestQuizResult.confidence_score} className="h-2" />
+                          <Progress
+                            value={latestQuizResult.confidence_score}
+                            className="h-2"
+                          />
                         </div>
                       </div>
                       <Button asChild size="sm" className="w-full">
                         <Link to="/quiz">
-                          Retake Assessment <ChevronRight className="h-4 w-4 ml-1" />
+                          Retake Assessment{" "}
+                          <ChevronRight className="h-4 w-4 ml-1" />
                         </Link>
                       </Button>
                     </CardContent>
@@ -238,7 +280,9 @@ export default function Dashboard() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg">Get Started</CardTitle>
-                      <CardDescription>Take your first career assessment</CardDescription>
+                      <CardDescription>
+                        Take your first career assessment
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="text-center py-8">
@@ -248,7 +292,8 @@ export default function Dashboard() {
                         </p>
                         <Button asChild>
                           <Link to="/quiz">
-                            Start Assessment <ChevronRight className="h-4 w-4 ml-1" />
+                            Start Assessment{" "}
+                            <ChevronRight className="h-4 w-4 ml-1" />
                           </Link>
                         </Button>
                       </div>
@@ -264,7 +309,9 @@ export default function Dashboard() {
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Education Level</span>
+                        <span className="text-sm text-muted-foreground">
+                          Education Level
+                        </span>
                         <Badge variant="outline">{profile?.class_completed}</Badge>
                       </div>
                       {profile?.stream && (
@@ -285,9 +332,113 @@ export default function Dashboard() {
                     </Button>
                   </CardContent>
                 </Card>
+
+                {/* Line Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Quiz Confidence Over Time</CardTitle>
+                    <CardDescription>
+                      Track your confidence trends in assessments
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent style={{ height: 300 }}>
+                    {lineChartData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={lineChartData}
+                          margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+                        >
+                          <defs>
+                            <linearGradient
+                              id="confidenceGradient"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop offset="0%" stopColor="#4f46e5" stopOpacity={0.7} />
+                              <stop offset="100%" stopColor="#4f46e5" stopOpacity={0.1} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                          <YAxis domain={[0, 100]} tickFormatter={(val) => `${val}%`} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#f9fafb",
+                              borderRadius: 8,
+                              border: "none",
+                            }}
+                            formatter={(value: any) => `${value}%`}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="confidence"
+                            stroke="#4f46e5"
+                            strokeWidth={3}
+                            dot={{ r: 5, fill: "#4f46e5", stroke: "#fff", strokeWidth: 2 }}
+                            activeDot={{ r: 7 }}
+                            fill="url(#confidenceGradient)"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <p className="text-center text-muted-foreground">
+                        No quiz results to display
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Bar Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recommended Streams Frequency</CardTitle>
+                    <CardDescription>
+                      See which streams are suggested most often
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent style={{ height: 300 }}>
+                    {barChartData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={barChartData}
+                          margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="stream" tick={{ fontSize: 12 }} />
+                          <YAxis />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#f9fafb",
+                              borderRadius: 8,
+                              border: "none",
+                            }}
+                            formatter={(value: any) => `${value} times`}
+                          />
+                          <Bar
+                            dataKey="count"
+                            radius={[8, 8, 0, 0]}
+                            label={{ position: "top", fill: "#111", fontSize: 12 }}
+                          >
+                            {barChartData.map((entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={index % 2 === 0 ? "#10b981" : "#3b82f6"}
+                              />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <p className="text-center text-muted-foreground">No data to display</p>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 
+            {/* Quiz Results Tab */}
             <TabsContent value="quiz-results" className="space-y-6">
               {quizResults.length > 0 ? (
                 <div className="grid gap-4">
@@ -301,7 +452,9 @@ export default function Dashboard() {
                               {new Date(result.created_at).toLocaleDateString()}
                             </p>
                           </div>
-                          <Badge variant="secondary">{result.confidence_score}% match</Badge>
+                          <Badge variant="secondary">
+                            {result.confidence_score}% match
+                          </Badge>
                         </div>
                         <Progress value={result.confidence_score} className="mb-4" />
                         {result.suggested_courses && result.suggested_courses.length > 0 && (
@@ -333,6 +486,7 @@ export default function Dashboard() {
               )}
             </TabsContent>
 
+            {/* Saved Items Tab */}
             <TabsContent value="saved" className="space-y-6">
               <Card>
                 <CardContent className="text-center py-12">
@@ -345,6 +499,7 @@ export default function Dashboard() {
               </Card>
             </TabsContent>
 
+            {/* Profile Tab */}
             <TabsContent value="profile" className="space-y-6">
               <Card>
                 <CardHeader>
