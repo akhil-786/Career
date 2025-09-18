@@ -1,5 +1,6 @@
 // src/pages/Colleges.tsx
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -97,10 +98,10 @@ export default function Colleges() {
 
           {/* Desktop Links */}
           <div className="hidden md:flex gap-6 text-sm">
-            <a href="/dashboard" className="hover:text-blue-600">Dashboard</a>
-            <a href="/colleges" className="text-blue-600 font-medium">Colleges</a>
-            <a href="/quiz" className="hover:text-blue-600">Quiz</a>
-            <a href="/Roadmaps" className="hover:text-blue-600">Roadmaps</a>
+            <Link to="/dashboard" className="hover:text-blue-600">Dashboard</Link>
+            <Link to="/colleges" className="text-blue-600 font-medium">Colleges</Link>
+            <Link to="/quiz" className="hover:text-blue-600">Quiz</Link>
+            <Link to="/roadmaps" className="hover:text-blue-600">Roadmaps</Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -119,10 +120,10 @@ export default function Colleges() {
         {/* Mobile Menu */}
         {menuOpen && (
           <div className="md:hidden bg-white border-t shadow-md flex flex-col px-4 py-4 gap-3">
-            <a href="/dashboard" className="hover:text-blue-600" onClick={() => setMenuOpen(false)}>Dashboard</a>
-            <a href="/colleges" className="text-blue-600 font-medium" onClick={() => setMenuOpen(false)}>Colleges</a>
-            <a href="/quiz" className="hover:text-blue-600" onClick={() => setMenuOpen(false)}>Quiz</a>
-            <a href="/roadmap" className="hover:text-blue-600" onClick={() => setMenuOpen(false)}>Roadmaps</a>
+            <Link to="/dashboard" className="hover:text-blue-600" onClick={() => setMenuOpen(false)}>Dashboard</Link>
+            <Link to="/colleges" className="text-blue-600 font-medium" onClick={() => setMenuOpen(false)}>Colleges</Link>
+            <Link to="/quiz" className="hover:text-blue-600" onClick={() => setMenuOpen(false)}>Quiz</Link>
+            <Link to="/roadmaps" className="hover:text-blue-600" onClick={() => setMenuOpen(false)}>Roadmaps</Link>
             <Button variant="outline" size="sm" onClick={() => setMenuOpen(false)}>Sign Out</Button>
           </div>
         )}
